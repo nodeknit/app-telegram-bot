@@ -1,5 +1,5 @@
 import { AbstractApp, AppManager, Collection } from "@nodeknit/app-manager";
-import { Telegraf, Markup } from 'telegraf';
+import { Telegraf, Markup, Context } from 'telegraf';
 import { spawn } from 'child_process';
 
 export class AppTelegramBot extends AbstractApp {
@@ -77,15 +77,15 @@ export class AppTelegramBot extends AbstractApp {
         console.log('Bot commands menu set');
 
         // Обработчик команды /start
-        this.bot.command('start', (ctx) => {
+        this.bot.command('start', (ctx: Context) => {
             ctx.reply('Добро пожаловать!', Markup.inlineKeyboard([
                 Markup.button.webApp('Открыть Mini App', `${webAppUrl}?startapp=start`)
             ]));
         });
 
         // Обработчик сообщений: отправить кнопку для открытия mini app
-        this.bot.on('text', (ctx) => {
-            console.log('Received message:', ctx.message.text);
+        this.bot.on('text', (ctx: Context) => {
+            console.log('Received message:', (ctx.message as any).text);
             ctx.reply('Открываем mini app:', Markup.inlineKeyboard([
                 Markup.button.webApp('Открыть Mini App', `${webAppUrl}?startapp=start`)
             ]));
