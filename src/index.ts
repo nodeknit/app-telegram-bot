@@ -27,7 +27,7 @@ export class AppTelegramBot extends AbstractApp {
         this.bot.launch();
         console.log('Telegram bot launched');
 
-        let webAppUrl = 'https://dailyscope.m42.cx/';
+        const webAppUrl = process.env.TG_WEB_APP_URL;
 
         if (process.env.NODE_ENV === 'development') {
             console.log('Development mode detected, starting localhost.run tunnel...');
@@ -38,9 +38,9 @@ export class AppTelegramBot extends AbstractApp {
                 console.log('localhost.run tunnel stdout:', output);
                 const match = output.match(/https:\/\/[^\s]+/);
                 if (match) {
-                    webAppUrl = match[0];
-                    console.log('Extracted tunnel URL:', webAppUrl);
-                    this.setMenuButton(webAppUrl);
+                    const tunnelUrl = match[0];
+                    console.log('Extracted tunnel URL:', tunnelUrl);
+                    this.setMenuButton(tunnelUrl);
                 } else {
                     console.log('No URL found in output');
                 }
@@ -60,35 +60,50 @@ export class AppTelegramBot extends AbstractApp {
 
             // Timeout in case URL not received
             setTimeout(() => {
-                if (webAppUrl === 'https://dailyscope.m42.cx/') {
-                    console.log('Timeout: URL not received, using default');
-                    this.setMenuButton(webAppUrl);
+                if (!webAppUrl) {
+                    console.log('Timeout: URL not received and no TG_WEB_APP_URL set');
                 }
             }, 10000);
         } else {
-            console.log('Production mode, using fixed URL');
-            await this.setMenuButton(webAppUrl);
+            console.log('Production mode');
+            if (webAppUrl) {
+                await this.setMenuButton(webAppUrl);
+            } else {
+                console.warn('TG_WEB_APP_URL not set, menu button will not be configured');
+            }
         }
 
-        // Установить команды меню бота с web_app
-        await this.bot.telegram.setMyCommands([
-            { command: 'start', description: 'Запустить бота и открыть mini app' }
-        ]);
-        console.log('Bot commands menu set');
+        // Установить команды меню бота с web_app только если URL есть
+        if (webAppUrl) {
+            await this.bot.telegram.setMyCommands([
+                { command: 'start', description: 'Запустить бота и открыть mini app' }
+            ]);
+            console.log('Bot commands menu set');
+        } else {
+            console.warn('TG_WEB_APP_URL not set, bot commands will not include web app');
+        }
 
         // Обработчик команды /start
         this.bot.command('start', (ctx: Context) => {
-            ctx.reply('Добро пожаловать!', Markup.inlineKeyboard([
-                Markup.button.webApp('Открыть Mini App', `${webAppUrl}?startapp=start`)
-            ]));
+            const welcomeMessage = `🌟 Добро пожаловать!`;
+
+            if (webAppUrl) {
+                ctx.reply(welcomeMessage, Markup.inlineKeyboard([
+                    Markup.button.webApp('🚀 Открыть приложение', `${webAppUrl}?startapp=start`)
+                ]));
+            } else {
+                ctx.reply(welcomeMessage);
+            }
         });
 
         // Обработчик сообщений: отправить кнопку для открытия mini app
         this.bot.on('text', (ctx: Context) => {
             console.log('Received message:', (ctx.message as any).text);
-            ctx.reply('Открываем mini app:', Markup.inlineKeyboard([
-                Markup.button.webApp('Открыть Mini App', `${webAppUrl}?startapp=start`)
-            ]));
+            if (webAppUrl) {
+                ctx.reply('Открываем mini app:', Markup.inlineKeyboard([
+                    Markup.button.webApp('Открыть Mini App', `${webAppUrl}?startapp=start`)
+                ]));
+            }
         });
     }
 
