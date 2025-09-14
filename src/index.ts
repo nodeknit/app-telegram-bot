@@ -130,3 +130,6 @@ export class AppTelegramBot extends AbstractApp {
         }
     }
 }
+
+// Default export
+export default AppTelegramBot;
