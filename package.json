@@ -5,7 +5,8 @@
   "type": "module",
   "typings": "index.d.ts",
   "scripts": {
-    "test": "vitest",
+    "test": "vitest",        
+    "build": "tsc",
     "package:prepare": "node ./scripts/prepare-package.mjs",
     "package:version": "node ./scripts/version-package.mjs"
   },
