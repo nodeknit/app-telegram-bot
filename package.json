@@ -5,7 +5,9 @@
   "type": "module",
   "typings": "index.d.ts",
   "scripts": {
-    "test": "vitest"
+    "test": "vitest",
+    "package:prepare": "node ./scripts/prepare-package.mjs",
+    "package:version": "node ./scripts/version-package.mjs"
   },
   "dependencies": {
     "telegraf": "^4.16.3"
